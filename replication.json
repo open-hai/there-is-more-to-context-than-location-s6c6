@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "paper": {
+    "key": "10.1016/s0097-8493(99)00120-x",
+    "scheme": "doi",
+    "title": "There is more to context than location",
+    "slug": "there-is-more-to-context-than-location"
+  },
+  "reproduction": {
+    "repo": "open-hai/there-is-more-to-context-than-location-s6c6",
+    "created": "2026-08-16T18:52:39.247424418Z",
+    "method_digest": "sha256:b12fdb93d6aa4fb34e7a8bce50c9b0dcf45eddc635730f52111affde7495a259",
+    "verdict": "passed"
+  },
+  "redistribution": {
+    "third_party_data": false,
+    "review": "clear"
+  },
+  "findings": {
+    "present": true
+  }
+}
