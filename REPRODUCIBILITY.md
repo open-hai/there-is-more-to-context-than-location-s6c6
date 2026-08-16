@@ -137,6 +137,32 @@ Two consequences worth stating plainly, because they are where this paper tests 
   synthetic in every output it touches, and is never presented as a stand-in for what the
   authors measured.
 
+### What a follow-up human study would have to cover
+
+Stated here so the boundary is actionable rather than only descriptive; the machine-readable
+form, with the criteria each component fails, is `servability` in `instrument.json`. None of
+the six is servable in a browser.
+
+- **O1, the backlight claim.** Participants using a handheld display under controlled
+  ambient light — lighting is the manipulation, so it cannot be administered by a page, and
+  the device needs a light sensor and a switching rule the paper never specifies (D13).
+- **O2, the orientation benefits.** Participants physically turning a device, and a second
+  person for the collaboration claim; turn-taking and "showing the display to another" can
+  only be captured by observation or video coding, and the Newton interface of Fig. 2 would
+  have to be rebuilt first, including the switch-to-orientation mapping the text leaves open
+  (D14, D15).
+- **O3, "hardly used, if at all".** A survey or log study of people's own devices, with an
+  instrument the paper does not contain; the behaviour happens in software no page controls
+  or can verify.
+- **O4, the situated recordings.** A person carrying a documented multi-sensor board through
+  named indoor and outdoor situations — which first requires the sensor list and the frame
+  format the paper omits (D2, D3) and operational definitions of the situations (D16).
+- **O5, recognition ground truth.** Experience sampling of real situations over more than
+  one session, plus a labelling protocol, before any recognition rate could be quoted.
+- **O6, the three application benefits.** Working context-aware applications driven by real
+  sensed context — interruptibility, filtering, scheduling — none of which exists in the
+  paper as an interface, task or stimulus set.
+
 What follows from the boundary is the shape of the whole audit: the outer loop of this
 paper is **absent rather than unreproducible**. Six human-facing claims (O1–O6) carry the
 paper's argument about usability, interaction and application benefit, and not one of them
