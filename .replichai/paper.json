@@ -1,0 +1,22 @@
+{
+  "Key": "10.1016/s0097-8493(99)00120-x",
+  "Scheme": "doi",
+  "Title": "There is more to context than location",
+  "Slug": "there-is-more-to-context-than-location",
+  "Sources": [
+    "https://doi.org/10.1016/S0097-8493(99)00120-X"
+  ],
+  "Record": {
+    "authors": [
+      "Albrecht Schmidt",
+      "Michael Beigl",
+      "Hans-W Gellersen"
+    ],
+    "venue": "Computers \u0026amp; Graphics",
+    "year": 1999,
+    "volume": "23",
+    "issue": "6",
+    "pages": "893-901",
+    "publisher": "Elsevier BV"
+  }
+}
