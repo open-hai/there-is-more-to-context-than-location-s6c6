@@ -16,7 +16,8 @@ Section 3.1 and Fig. 1); a survey of cheap sensors and what context each can yie
 Newton MessagePad with two mercury switches that rotates its interface (Section 4.2); and a
 four-layer sensor-fusion architecture — sensors → cues → contexts → scripting — with an
 "awareness device" built for experimentation under the ESPRIT project TEA (Section 5). It is
-one of the most-cited papers in context-aware computing (≈1,300 citations).
+one of the most-cited papers in context-aware computing (1,346 citations recorded by Semantic
+Scholar and 725 by Scopus at the time of this audit).
 
 ## What this repository is
 

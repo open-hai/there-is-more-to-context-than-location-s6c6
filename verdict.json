@@ -131,7 +131,13 @@
       "loop": "inner",
       "outcome": "partial",
       "evidence": "The state machine reproduces (src/prototypes.py) and two binary switches do supply exactly the four states 'always right way up' needs. Blocker for the rest: the paper constrains none of the 24 switch-state-to-orientation bijections (D14) and gives no debounce or latency (D15); the Newton MessagePad of Fig. 2 and its software are unavailable",
-      "citation": "Section 4.2, Fig. 2"
+      "citation": "Section 4.2, Fig. 2",
+      "mismatch": {
+        "kind": "numeric",
+        "reported": "Section 4.2 names three display modes: portrait when held upright, landscape when turned sideways, and 'also rotated accordingly' when turned upside down",
+        "observed": "the 'always right way up' bullet requires four distinguishable orientations (both landscape directions), and the two mercury switches supply exactly four states - enumerated by src/prototypes.py",
+        "delta": "+1 orientation that the text never names; which of the two landscape directions each switch state maps to is left undetermined (D14, 24 bijections open)"
+      }
     },
     {
       "claim": "Conclusion: 'deploying multiple sensors of the same type (e.g. several light sensors) contributes valuable additional information (e.g. direction of light, sunny, shade)'",

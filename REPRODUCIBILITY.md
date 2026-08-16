@@ -45,7 +45,7 @@ never scored. Citations are to the audited draft.
 | I11 | Accelerometer cues: "stationary", "walking", and so on | **partial** | Implemented as within-window dispersion of the accelerometer magnitude with thresholds (D8); the ordering stationary < walking < running holds on synthetic data. The paper gives no feature, no threshold, no axis convention and no sensor range | Section 5.3 |
 | I12 | Fig. 4 and its claim: light-sensor data from two different contexts, which "can be easily and reliably distinguished" | **blocked** | The data were never released (every location searched is listed in [SOURCES.md](SOURCES.md) — 34 URLs across publisher records, the authors' pages and five repositories); the figure carries no units, duration or sample count; and the text reports no separability measure, accuracy, error rate or *n*. There is no number in the paper to reproduce, so a synthetic separation demonstrates only my generator. See mismatch 1 | Fig. 4, Section 5.3 |
 | I13 | The light-sensitive display: a light sensor in a Palm Pilot, applied to control the backlight | **blocked** | The prototype is described in three sentences: no sensor, no circuit, no software, no lux scale, no threshold, no timing. My stand-in hysteresis controller (`src/prototypes.py`) shows why that matters: on the same trace, plausible settings give 2 to 6 backlight switches and a duty cycle from 0.164 to 0.545 (D13). Nothing in the paper picks among them | Section 4.2 |
-| I14 | The orientation-sensitive user interface: two mercury switches, portrait / landscape / upside-down rotation | **partial** | The state machine reproduces (`src/prototypes.py`), and two binary switches do supply exactly the four states that "always right way up" needs. But the paper constrains **none** of the 24 possible switch-state→orientation bijections (D14) and gives no debounce or latency (D15); Fig. 2's Newton MessagePad and its software are unavailable | Section 4.2, Fig. 2 |
+| I14 | The orientation-sensitive user interface: two mercury switches, portrait / landscape / upside-down rotation | **partial** | The state machine reproduces (`src/prototypes.py`), and two binary switches do supply exactly the four states that "always right way up" needs. But the paper constrains **none** of the 24 possible switch-state→orientation bijections (D14) and gives no debounce or latency (D15); Fig. 2's Newton MessagePad and its software are unavailable. See mismatch 5 | Section 4.2, Fig. 2 |
 | I15 | Conclusion: "deploying multiple sensors of the same type (e.g. several light sensors) contributes valuable additional information (e.g. direction of light, sunny, shade)" | **blocked** | "First experiments" with no data, no method, no metric and no result. Worse, the quantity claimed cannot be expressed in the paper's own architecture: Section 5.1 requires a cue to depend on a single sensor, and `src/architecture.py` refuses to build a two-light-sensor cue with exactly that message | Section 6; cf. Section 5.1 |
 
 Counts: **3 verified, 7 partial, 5 blocked, 15 inner-loop components.**
@@ -104,6 +104,14 @@ Recorded as data in `verdict.json` on the rows they belong to.
    prototype is built entirely on device orientation, but the Fig. 1 feature space has no
    branch, category or feature for device state or handling; the two motion cues of Table 1
    have nowhere to live in it either.
+
+5. **I14 — three modes named, four needed.** Section 4.2 names three display modes
+   (portrait upright, landscape turned sideways, "also rotated accordingly" upside down),
+   but its own first bullet — "the adaptive user interface is always the right way up
+   whichever way a device is held" — requires four distinguishable orientations, because
+   the two landscape directions differ. Two mercury switches do supply exactly four states,
+   so the design works; the count in the prose is one short, and which landscape direction
+   each state means is left open (D14).
 
 A metadata-level typo, recorded in [SOURCES.md](SOURCES.md) rather than in the table: the
 publisher's page range (893–901) and the authors' own abstract page (893–902) disagree.
