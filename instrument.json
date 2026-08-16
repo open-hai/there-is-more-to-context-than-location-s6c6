@@ -1,0 +1,168 @@
+{
+  "protocol": null,
+  "analysis": {
+    "command": "python src/analyze.py {{INPUT}} --outdir results",
+    "input": {
+      "columns": [
+        {
+          "name": "t_s",
+          "type": "float",
+          "unit": "seconds since start of recording",
+          "required": true
+        },
+        {
+          "name": "light_adc",
+          "type": "integer",
+          "unit": "light-sensor ADC counts, 0-255 full scale (D1)",
+          "required": true
+        },
+        {
+          "name": "acc_x_adc",
+          "type": "integer",
+          "unit": "accelerometer x ADC counts, 0-255 full scale",
+          "required": true
+        },
+        {
+          "name": "acc_y_adc",
+          "type": "integer",
+          "unit": "accelerometer y ADC counts, 0-255 full scale",
+          "required": true
+        },
+        {
+          "name": "temp_c",
+          "type": "float",
+          "unit": "degrees Celsius",
+          "required": false
+        },
+        {
+          "name": "switch_a",
+          "type": "integer",
+          "unit": "mercury switch A, 0 or 1 (Section 4.2 orientation prototype)",
+          "required": false
+        },
+        {
+          "name": "switch_b",
+          "type": "integer",
+          "unit": "mercury switch B, 0 or 1",
+          "required": false
+        },
+        {
+          "name": "situation",
+          "type": "string",
+          "unit": "free-text situation label used only for grouping the report, never for fitting",
+          "required": false
+        }
+      ]
+    },
+    "outputs": [
+      {
+        "path": "results/cues.csv",
+        "what": "one row per cue window: brightness, light type, motion, temperature, window light mean, flicker prominence"
+      },
+      {
+        "path": "results/contexts.csv",
+        "what": "per window, the certainty of every context of both context layers (Table 1 and the indoors/outdoors pair of Section 5.3)"
+      },
+      {
+        "path": "results/events.json",
+        "what": "scripting-layer events (enter / leave / while) with time, context and certainty"
+      },
+      {
+        "path": "results/summary.json",
+        "what": "the whole run as data: model validation, Table 1 audit, byte budget, per-situation cue counts, prototype behaviour and sensitivity, and every assumption used"
+      },
+      {
+        "path": "results/assumptions.json",
+        "what": "D1-D18 with question, where the paper leaves it open, what was assumed and the sensitivity"
+      },
+      {
+        "path": "results/report.md",
+        "what": "human-readable summary of the run"
+      },
+      {
+        "path": "results/fig4_style_light.png",
+        "what": "a Fig. 4-style light-sensor plot of the input, labelled synthetic"
+      }
+    ],
+    "environment": {
+      "python": ">=3.11",
+      "packages": [
+        "numpy",
+        "pandas",
+        "matplotlib"
+      ],
+      "install": "pip install -r requirements.txt",
+      "selftest": "python src/selftest.py"
+    },
+    "notes": "The command consumes no participant data and produces no estimate about people. Ground-truth labels in the 'situation' column are used only to group the report; no model is fitted to them."
+  },
+  "servability": {
+    "all_servable": false,
+    "components": [
+      {
+        "component": "O1: that a light sensor in the display 'can substantially add to usability of ultra-mobile devices' (Section 4.2)",
+        "servable": false,
+        "failed_criteria": [
+          "screen_based",
+          "page_administrable",
+          "apparatus_recovered"
+        ],
+        "why": "The manipulation is the ambient light around a handheld device with a backlight, which a web page can neither set nor verify, and the apparatus (a Palm Pilot with an undocumented light sensor and an unstated switching threshold, D13) was never specified well enough to rebuild."
+      },
+      {
+        "component": "O2: the three interaction benefits claimed for orientation awareness, including turn-taking over a shared PDA (Section 4.2)",
+        "servable": false,
+        "failed_criteria": [
+          "screen_based",
+          "no_experimenter",
+          "browser_measures",
+          "apparatus_recovered"
+        ],
+        "why": "Participants must physically turn and hand over a device; the collaboration claim needs a second person in the loop; turn-taking and 'showing the display to another' can only be measured by observation or video coding; and the Newton MessagePad interface of Fig. 2 is neither rebuilt in src/ nor specified enough to build (D14, D15)."
+      },
+      {
+        "component": "O3: 'experience shows that [OS-provided rotation] is hardly used, if at all' (Section 4.2)",
+        "servable": false,
+        "failed_criteria": [
+          "page_administrable",
+          "apparatus_recovered"
+        ],
+        "why": "The behaviour of interest happens in other people's device software over time, which the page neither controls nor can verify, and the paper supplies no questionnaire, log protocol or instrument of any kind that a page could administer."
+      },
+      {
+        "component": "O4: collecting labelled sensor data 'in different situations, for instance \"indoors\" and \"outdoors\"' (Section 5.3)",
+        "servable": false,
+        "failed_criteria": [
+          "screen_based",
+          "browser_measures",
+          "apparatus_recovered"
+        ],
+        "why": "Someone must carry a multi-sensor board through real indoor and outdoor situations; the measures are that board's channels (the paper never lists them, D2), which a browser cannot capture; and the device of Fig. 3 is not reconstructible from the paper."
+      },
+      {
+        "component": "O5: ground truth that a recognised context is the situation the user is actually in (Section 5, Table 1)",
+        "servable": false,
+        "failed_criteria": [
+          "single_session",
+          "screen_based",
+          "browser_measures",
+          "apparatus_recovered"
+        ],
+        "why": "Establishing this needs sampling a person's real situations over time rather than one seated session, physical sensing hardware, and an observational or self-report labelling procedure; the paper defines no situations operationally (D16) and gives no labelling protocol."
+      },
+      {
+        "component": "O6: the application benefits motivating the paper - information filtering against overload, context-aware communication, proactive scheduling (Section 3.3)",
+        "servable": false,
+        "failed_criteria": [
+          "page_administrable",
+          "apparatus_recovered"
+        ],
+        "why": "Each benefit presupposes a context-aware application driven by real sensed context outside the page, and none of the three applications exists in the paper - there is no interface, task or stimulus set to rebuild."
+      }
+    ]
+  },
+  "absent_reasons": {
+    "protocol": "The paper describes no study with participants, and its procedure is too vague to extract. The only procedural sentence about data is Section 5.3: 'For experimentation with this approach, we collected raw data in different situations, for instance \"indoors\" and \"outdoors\".' There is no participant count, no session structure, no trial structure, no task, no stimulus set, no counterbalancing, no measure with a scale or a level, no statistical plan and no reported statistic - the 'experiment' the abstract promises is one unlabelled figure (Fig. 4) plus an illustrative table of cue descriptions (Table 1). Because there is nothing to extract, no design, trials, measures, plan or 'reported' entries are given here: writing them would mean inventing the study. The paper's human-facing claims (Section 4.2 usability and interaction benefits, Section 3.3 application benefits, the assertion that OS rotation 'is hardly used') are instead recorded as outer-loop rows O1-O6 in verdict.json, each with its citation and each with outcome not_scored. The paper's quantitative content, all of it, is one number - 'about 1100 Bytes of sensor readings per second' (Section 5.3) - which is treated as an inner-loop component (I8) rather than as a study result.",
+    "analysis": null
+  }
+}

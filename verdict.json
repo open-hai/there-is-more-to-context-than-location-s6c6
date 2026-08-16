@@ -1,0 +1,504 @@
+{
+  "schema": 1,
+  "verdict": "partial",
+  "summary": "The paper's conceptual and architectural machinery reproduces: the four rules and six-category feature space of the working model (Section 3.1, Fig. 1), the four-layer sensor-cue-context-scripting architecture and its scripting semantics (Section 5.1) are specified tightly enough to rebuild, and src/ rebuilds and runs them (24 self-test checks; 44 cue windows; 12 scripting events on synthetic input). Everything touching measurement is partial or blocked for one reason: the paper reports no quantitative result at all. Its experiment (Section 5.3) is one unlabelled figure plus an illustrative table; no accuracy, sample count, duration, unit, sensor list or threshold is given, and no code or data were ever released (SOURCES.md lists all 34 URLs checked). Three cue functions, the backlight threshold and the switch-to-orientation mapping had to be invented (D1-D18), and the paper's own numbers contradict it in three places. The outer loop here is absent rather than unreproducible: six human-facing claims about usability, interaction and application benefit (O1-O6) carry the paper's argument and not one is backed by a described procedure - no participants, task, measure or protocol appears anywhere in the text. Those six are recorded and never scored.",
+  "graded_at": "2026-08-16T18:46:18Z",
+  "components": {
+    "verified": 3,
+    "partial": 7,
+    "blocked": 5,
+    "total": 15
+  },
+  "rate_note": "3 verified / 7 partial / 5 blocked of 15 inner-loop components is a summary of THIS decomposition only. Merging the cue rows and the two device rows gives 3 of 11; splitting the scripting semantics into its three triggers gives 5 of 17. Not comparable across papers or across runs; the per-component table is the comparable artifact.",
+  "boundary": [
+    {
+      "claim": "Working model of context: four stated rules plus a feature space of two branches with three categories each",
+      "loop": "inner",
+      "outcome": "verified",
+      "evidence": "src/context_model.py encodes the four rules and all six categories with the 18 example features the prose lists; src/selftest.py asserts branches=2, six categories of three, four rules - all pass",
+      "citation": "Section 3.1, Fig. 1"
+    },
+    {
+      "claim": "That the model can express a context: rule 3 (a set of relevant features) with rule 4 (a determined range of values for each)",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "The structure instantiates, but the paper determines a value range for no feature anywhere, so rule 4 cannot be satisfied for any context; 2 of the 8 cues of the paper's own Table 1 (device motion) have no category in Fig. 1 at all, and 'room temperature'/'dry' fall in a category whose listed features are only noise, light and pressure. Printed by src/analyze.py",
+      "citation": "Section 3.1 rules 3-4; Fig. 1; Table 1",
+      "mismatch": {
+        "kind": "contradiction",
+        "reported": "Section 4.1 proposes sensors that report 'the handling of ultra-mobile devices', and Section 4.2's second prototype is built entirely on device orientation",
+        "observed": "the Fig. 1 feature space has no branch, category or feature for device state or handling, and the two motion cues of Table 1 have nowhere to live in it",
+        "delta": "2 of 8 Table 1 cues unhoused; the model cannot express the paper's own second prototype"
+      }
+    },
+    {
+      "claim": "Table 1: two contexts described in terms of cues ('In the office', 'Jogging')",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "Encoded as rules in src/contexts.py and evaluated over 44 cue windows; but the rule form, weights and certainty arithmetic are unstated (D9, D18), and two required cues (wetness, pulse) have no sensor named anywhere in the paper, capping certainty at 0.75 for 'In the office' and 0.50 for 'Jogging' - so under any threshold above 0.5 'Jogging' can never be entered",
+      "citation": "Table 1; Sections 5.1, 5.3"
+    },
+    {
+      "claim": "Four-layer architecture: sensors as time-dependent functions with declared value sets, cues over a single sensor, contexts as (symbol, certainty) vectors, scripting on top",
+      "loop": "inner",
+      "outcome": "verified",
+      "evidence": "src/architecture.py implements all four layers and enforces the stated constraints (a two-sensor cue is refused; a certainty outside the assumed [0,1] scale is refused); executed on the recorded run as 4 sensors -> 4 cues -> 2 context layers -> 44 context rows",
+      "citation": "Section 5.1",
+      "mismatch": {
+        "kind": "contradiction",
+        "reported": "Section 5.1: 'Each cue is dependent on a single sensor'",
+        "observed": "Section 6 claims several light sensors together yield 'direction of light', which two separate sensors cannot express at the cue layer; src/architecture.py raises exactly that error",
+        "delta": "the paper's own concluding claim is inexpressible in its own architecture; it would have to move to the context layer, which the paper does not say"
+      }
+    },
+    {
+      "claim": "Scripting semantics: entering, leaving and while-in a context, each with a certainty threshold and a time",
+      "loop": "inner",
+      "outcome": "verified",
+      "evidence": "src/architecture.py::ScriptingLayer; the self-test shows exactly one enter after the dwell time and one leave; the recorded run fires 12 events. Threshold and time values are assumed (D10, D11); the semantics, which is what the paper states, reproduce",
+      "citation": "Section 5.1"
+    },
+    {
+      "claim": "'In case of context prediction the time might be negative'",
+      "loop": "inner",
+      "outcome": "blocked",
+      "evidence": "Blocker: no prediction mechanism is described anywhere in the paper - no model, no horizon, no input. The scripting layer raises NotImplementedError on a negative time rather than inventing one",
+      "citation": "Footnote to Section 5.1"
+    },
+    {
+      "claim": "The awareness device: sensors -> A/D converter -> microcontroller -> serial line to a host computer",
+      "loop": "inner",
+      "outcome": "blocked",
+      "evidence": "Blocker: Fig. 3 is a block diagram only - no sensor list ('a greater number of possibly relevant sensors'), no part numbers, no component values, no firmware, no sampling schedule, no A/D resolution. Nothing to build, nothing to run. An inner-loop documentation blocker, not an outer-loop boundary: rebuilding hardware needs no participants",
+      "citation": "Section 5.2, Fig. 3"
+    },
+    {
+      "claim": "'The awareness device provides about 1100 Bytes of sensor readings per second', transmitted interlaced",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "The arithmetic reproduces (src/stream.py): at one byte per sample, 1100 B/s gives 275 Hz per channel over four channels, and at most 5 equally interlaced channels stay above the 200 Hz needed to resolve 100 Hz mains flicker. Blocker for the rest: the interlacing format (channel order, word width, sync marker, per-channel priority) is unspecified (D3), so the decoder round-trips only my own stream",
+      "citation": "Sections 5.2-5.3"
+    },
+    {
+      "claim": "The 'brightness' cue, obtained from light-sensor readings by 'simple statistical functions'",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "Implemented as a windowed mean with assumed symbol boundaries (D4) and run over 44 windows (dark in the synthetic corridor, dim at the desk, bright outdoors). Blocker: the paper names neither function, thresholds, units nor ADC scale, and released no data",
+      "citation": "Section 5.3"
+    },
+    {
+      "claim": "The 'artificial light' cue, likewise from simple statistical functions",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "Implemented as mains-flicker prominence with an aliased-variance fallback (D5, D6); separates the synthetic indoor and outdoor traces at both 275 Hz and 128 Hz. Blocker: the method is entirely mine - the paper names the cue and stops",
+      "citation": "Section 5.3",
+      "mismatch": {
+        "kind": "contradiction",
+        "reported": "Section 5.3 offers 'artificial light' as a cue obtainable with 'simple statistical functions' from light-sensor readings, and gives the device's output as 'about 1100 Bytes of sensor readings per second', interlaced",
+        "observed": "reading mains flicker needs >200 Hz on the light channel (100 Hz flicker at 50 Hz mains); the stated budget supports that for at most 5 equally interlaced one-byte channels, while Section 5.2 says the board was built for 'a greater number of possibly relevant sensors'",
+        "delta": "1100/4 = 275 Hz feasible vs 1100/6 = 183 Hz infeasible; the paper's own number leaves the feasibility of its own cue undetermined"
+      }
+    },
+    {
+      "claim": "Accelerometer cues: 'stationary', 'walking', and so on",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "Implemented as within-window dispersion of the accelerometer magnitude with assumed thresholds (D8); the ordering stationary < walking < running holds on synthetic data. Blocker: the paper gives no feature, threshold, axis convention or sensor range",
+      "citation": "Section 5.3"
+    },
+    {
+      "claim": "Fig. 4 and its claim that light-sensor data from two different contexts 'can be easily and reliably distinguished'",
+      "loop": "inner",
+      "outcome": "blocked",
+      "evidence": "Blocker: the data were never released (34 URLs checked across publisher records, author pages and repositories; see SOURCES.md); the figure carries no units, duration or sample count; the text reports no separability measure, accuracy, error rate or n. There is no number in the paper to reproduce",
+      "citation": "Fig. 4, Section 5.3",
+      "mismatch": {
+        "kind": "contradiction",
+        "reported": "Abstract: 'Based on an implementation of the model an experiment is described and the feasibility of the approach is demonstrated'",
+        "observed": "Section 5.3 describes collecting raw data in unspecified situations and shows Fig. 4; it reports no measurement of any kind - no accuracy, sample count, duration, separability statistic or repetitions",
+        "delta": "the demonstration is asserted, not shown: zero quantitative results exist in the paper"
+      }
+    },
+    {
+      "claim": "The light-sensitive display: a light sensor in a Palm Pilot, applied to control the backlight",
+      "loop": "inner",
+      "outcome": "blocked",
+      "evidence": "Blocker: the prototype is described in three sentences - no sensor, circuit, software, lux scale, threshold or timing. The stand-in hysteresis controller in src/prototypes.py shows the cost: on one trace, plausible settings give 2 to 6 backlight switches and duty cycles from 0.164 to 0.545 (D13), and nothing in the paper picks among them",
+      "citation": "Section 4.2"
+    },
+    {
+      "claim": "The orientation-sensitive user interface: two mercury switches rotating the interface between portrait, landscape and upside-down",
+      "loop": "inner",
+      "outcome": "partial",
+      "evidence": "The state machine reproduces (src/prototypes.py) and two binary switches do supply exactly the four states 'always right way up' needs. Blocker for the rest: the paper constrains none of the 24 switch-state-to-orientation bijections (D14) and gives no debounce or latency (D15); the Newton MessagePad of Fig. 2 and its software are unavailable",
+      "citation": "Section 4.2, Fig. 2"
+    },
+    {
+      "claim": "Conclusion: 'deploying multiple sensors of the same type (e.g. several light sensors) contributes valuable additional information (e.g. direction of light, sunny, shade)'",
+      "loop": "inner",
+      "outcome": "blocked",
+      "evidence": "Blocker: 'first experiments' with no data, no method, no metric and no result; and the claimed quantity is inexpressible at the cue layer of the paper's own architecture (see the mismatch on the architecture row)",
+      "citation": "Section 6; cf. Section 5.1"
+    },
+    {
+      "claim": "That integrating a light sensor 'can substantially add to usability of ultra-mobile devices'",
+      "loop": "outer",
+      "outcome": "not_scored",
+      "evidence": "A claim about what people experience. No participants, task, measure or procedure is reported anywhere in the paper; the usability benefit is asserted",
+      "citation": "Section 4.2"
+    },
+    {
+      "claim": "The three interaction benefits claimed for orientation awareness: 'always right way up', alternating portrait/landscape for spreadsheets and browsing, and taking turns or showing the display in face-to-face collaboration over a PDA",
+      "loop": "outer",
+      "outcome": "not_scored",
+      "evidence": "Each is a claim about users, one about two people in a social setting; establishing them requires participants and none appear in the paper",
+      "citation": "Section 4.2"
+    },
+    {
+      "claim": "'The Newton MessagePad and also other PDAs actually offer operating system support for rotation of the user interface but experience shows that this feature is hardly used, if at all'",
+      "loop": "outer",
+      "outcome": "not_scored",
+      "evidence": "An empirical statement about user behaviour with no study, no source and no data behind it",
+      "citation": "Section 4.2"
+    },
+    {
+      "claim": "Collecting the raw sensor data 'in different situations, for instance \"indoors\" and \"outdoors\"'",
+      "loop": "outer",
+      "outcome": "not_scored",
+      "evidence": "A person has to carry the device through the situations, and the target contexts the paper names ('engaged in conversation', 'in a meeting', jogging) exist only when someone enacts them; src/synth.py stands in with synthetic data and is labelled as such",
+      "citation": "Section 5.3"
+    },
+    {
+      "claim": "The ground truth of context recognition: that a recognised context is the situation the user is actually in",
+      "loop": "outer",
+      "outcome": "not_scored",
+      "evidence": "The labels are human situations, so the reference against which any recognition rate would be computed can only come from people",
+      "citation": "Section 5, Table 1"
+    },
+    {
+      "claim": "The application benefits motivating the paper: filtering information flow against information overload, context-aware communication (urgency, interruptibility), and proactive application scheduling",
+      "loop": "outer",
+      "outcome": "not_scored",
+      "evidence": "Claims about human attention, interruption and task behaviour; the paper offers them as motivation and reports no study of them",
+      "citation": "Section 3.3"
+    }
+  ],
+  "decisions": [
+    {
+      "question": "At what rate and resolution is the light channel sampled?",
+      "where": "Section 5.3 gives only an aggregate: 'about 1100 Bytes of sensor readings per second' for the whole interlaced stream; no per-channel rate, no ADC width, no units on Fig. 4.",
+      "assumed": "275 Hz, 8-bit unsigned (0-255 counts) per channel -- derived from the paper's own 1100 B/s at one byte per sample and the four channels of D2 (1100/4 = 275); a second run at 128 Hz is reported to show what changes below the flicker Nyquist rate",
+      "sensitivity": "high: below 200 Hz the 100 Hz mains flicker used by the 'artificial light' cue is aliased, so a frequency-domain reading of that cue is replaced by a variance fallback and the flicker frequency can no longer be identified",
+      "id": "D1"
+    },
+    {
+      "question": "Which sensors does the awareness device carry, and how many?",
+      "where": "Section 5.2 says only that it was 'designed to allow experimentation with a greater number of possibly relevant sensors'; no sensor list, no part numbers, no schematic values in Fig. 3.",
+      "assumed": "4 channels: one light sensor, two accelerometer axes, one temperature sensor -- enough to exercise every cue the paper names",
+      "sensitivity": "high for the per-channel sampling budget (D1, D3); low for the structure of the pipeline itself",
+      "id": "D2"
+    },
+    {
+      "question": "What is the frame format of the interlaced serial stream?",
+      "where": "Section 5.3: 'The data from different sensors is transmitted interlaced to ensure recognition of sudden changes in the readings.' No frame layout, channel order, sync marker or word width is given.",
+      "assumed": "fixed round-robin over the channel list, one byte per sample, no sync marker, decoder told the channel order out of band",
+      "sensitivity": "total for decoding raw device output (a wrong order silently swaps channels); none once the data are in per-channel arrays",
+      "id": "D3"
+    },
+    {
+      "question": "What function turns light readings into the 'brightness' cue, and at what symbol boundaries?",
+      "where": "Section 5.3: 'Simple statistical functions can be applied to extract cues such as \"artificial light\" and \"brightness\"' -- the functions and thresholds are not given.",
+      "assumed": "mean of the window, mapped to dark / dim / bright at 0.20 and 0.55 of ADC full scale",
+      "sensitivity": "high: the boundaries decide directly whether an indoor window is called dim or bright, and hence whether the office rule fires",
+      "id": "D4"
+    },
+    {
+      "question": "What function produces the 'artificial light' cue?",
+      "where": "Section 5.3 names the cue and says only that simple statistical functions suffice; no method is described.",
+      "assumed": "mains-flicker detection: mean spectral power in a +/-6 Hz band around 2x mains frequency divided by the median power above a 10 Hz cutoff, cue = 'artificial' when that prominence exceeds 4; a variance-only fallback is used when the channel rate is below the flicker Nyquist rate",
+      "sensitivity": "very high: this is the whole cue; it also interacts with D1 (sample rate) and D6 (mains frequency)",
+      "id": "D5"
+    },
+    {
+      "question": "What mains frequency should the flicker cue assume?",
+      "where": "Never stated; the work was done in Karlsruhe, Germany (50 Hz mains, 100 Hz flicker from fluorescent lighting), but the paper does not say so and does not mention flicker at all.",
+      "assumed": "50 Hz mains, i.e. 100 Hz illumination flicker",
+      "sensitivity": "medium: a 60 Hz deployment moves the band to 120 Hz and the cue must be retuned; the dark/bright cue is unaffected",
+      "id": "D6"
+    },
+    {
+      "question": "Over what window, with what overlap, is a cue computed?",
+      "where": "Section 5.1 says a cue takes 'the values of a single sensor up to a certain time' -- the time is never quantified.",
+      "assumed": "1.0 s non-overlapping windows for every cue",
+      "sensitivity": "medium: shorter windows make the flicker estimate noisy, longer windows delay context changes and smear transitions",
+      "id": "D7"
+    },
+    {
+      "question": "What thresholds separate the motion cues stationary / walking / running?",
+      "where": "Section 5.3 names 'stationary', 'walking' and so on as accelerometer cues, with no feature, no threshold and no axis convention.",
+      "assumed": "standard deviation of the accelerometer magnitude within the window, in ADC counts: < 2 stationary, < 12 walking, else running",
+      "sensitivity": "high for the absolute labels (they scale with sensor sensitivity and mounting); the ordering stationary < walking < running is robust",
+      "id": "D8"
+    },
+    {
+      "question": "How is the certainty number of a context vector computed?",
+      "where": "Section 5.1 says each context vector carries 'a number indicating the certainty' -- no scale, no normalisation, no combination rule.",
+      "assumed": "fraction of the rule's required cues that are satisfied, in [0, 1]; certainties across contexts are not normalised and may sum above 1",
+      "sensitivity": "high: it sets the scale on which every scripting threshold (D10) is compared, so it changes which events fire",
+      "id": "D9"
+    },
+    {
+      "question": "What threshold and what time do the scripting triggers use?",
+      "where": "Section 5.1 states the enter / leave / while semantics but gives no threshold value and no time value for any of them.",
+      "assumed": "enter above 0.70 sustained 2 s; leave below 0.50 sustained 2 s; while in context, fire every 5 s",
+      "sensitivity": "high on event counts: with a single 0.5 threshold and no dwell time the synthetic run produces markedly more transitions",
+      "id": "D10"
+    },
+    {
+      "question": "Do enter and leave share one threshold (i.e. is there hysteresis)?",
+      "where": "Section 5.1 describes the two triggers separately and never relates their thresholds.",
+      "assumed": "two thresholds, 0.70 / 0.50, giving hysteresis",
+      "sensitivity": "high near the boundary: a single threshold makes the context state chatter on noisy cue windows",
+      "id": "D11"
+    },
+    {
+      "question": "How does the negative time of context prediction work?",
+      "where": "Footnote to Section 5.1: 'In case of context prediction the time might be negative.' No prediction mechanism appears anywhere in the paper.",
+      "assumed": "not implemented; the scripting layer raises NotImplementedError on a negative time",
+      "sensitivity": "not applicable: the feature cannot be built from the paper at all",
+      "id": "D12"
+    },
+    {
+      "question": "At what light level does the light-sensitive display switch its backlight, and with what time constant?",
+      "where": "Section 4.2 says a light sensor was integrated in a Palm Pilot 'to provide it with an awareness of surrounding lighting conditions, which can be applied for control of its display's backlight' -- no lux scale, no threshold, no timing, no hysteresis.",
+      "assumed": "backlight on below 0.25 of full scale, off above 0.35, with a 1.0 s debounce",
+      "sensitivity": "high and user-visible: the transition count on the synthetic trace changes by an order of magnitude across plausible threshold/debounce settings (reported by src/analyze.py)",
+      "id": "D13"
+    },
+    {
+      "question": "Which mercury-switch state corresponds to which screen orientation?",
+      "where": "Section 4.2 says the Newton MessagePad was enhanced 'by adding two mercury switches and simple electronics' and describes the resulting behaviour, but neither the switch geometry nor the state-to-orientation mapping is given.",
+      "assumed": "switches mounted orthogonally; (a,b) = (0,0) portrait, (0,1) landscape-right, (1,1) portrait-inverted, (1,0) landscape-left",
+      "sensitivity": "high: two binary switches admit 24 bijections onto four orientations and the text rules out none of them, so a wrong choice mirrors or inverts the interface",
+      "id": "D14"
+    },
+    {
+      "question": "How long must a switch state be stable before the interface rotates?",
+      "where": "Section 4.2 describes rotation on turning the device but gives no debounce, no latency and no filter.",
+      "assumed": "300 ms of stable switch state before rotating",
+      "sensitivity": "high for perceived behaviour (rotation while handing the device over), and untestable without participants",
+      "id": "D15"
+    },
+    {
+      "question": "What are the operational definitions of the situations that were recorded ('indoors', 'outdoors', 'in the office', 'jogging')?",
+      "where": "Section 5.3: 'we collected raw data in different situations, for instance \"indoors\" and \"outdoors\"'. No place, duration, time of day, weather, lighting type, activity script or labelling procedure.",
+      "assumed": "the synthetic generator's own definitions (src/synth.py), which are stand-ins and reproduce nothing of the paper's data",
+      "sensitivity": "high: any accuracy figure is a figure about these definitions, which is why none is claimed here",
+      "id": "D16"
+    },
+    {
+      "question": "How much data lies behind Fig. 4, and over what interval?",
+      "where": "Fig. 4 is captioned only 'Light sensor data'; the text says the two traces come from 'two different contexts'. No axes units, no duration, no sample count, no repetitions, no separability measure.",
+      "assumed": "10 s per condition in the synthetic stand-in",
+      "sensitivity": "high for any statistical statement; nothing in the paper constrains it",
+      "id": "D17"
+    },
+    {
+      "question": "What rule form maps cues to a context, and how are Table 1's cues combined?",
+      "where": "Section 5.3 offers 'explicit rule specification to infer context from cues, informed by prior statistical analysis' as one of two options, and gives no rule, no weights and no statistics.",
+      "assumed": "conjunction over the cues of Table 1, each cue satisfied by a set of admissible symbols; certainty as in D9",
+      "sensitivity": "high: a weighted or disjunctive form changes both the ranking of contexts and the certainty values",
+      "id": "D18"
+    }
+  ],
+  "scorecard": [
+    {
+      "criterion": "code",
+      "found": false,
+      "url": null,
+      "searched": [
+        "https://www.teco.edu/~albrecht/publication/ (author publication list: draft PDF and abstract page only)",
+        "https://www.teco.edu/~albrecht/ and the current https://www.teco.edu/publications",
+        "github.com/teco-kit (organisation exists; all repositories post-date 2010)",
+        "GitHub repository search API: 'technology for enabling awareness context', 'TEA board context awareness sensor cue', 'awareness device cue context fusion 1999'",
+        "https://zenodo.org/api/records?q=... (title and 'Technology for Enabling Awareness')",
+        "https://api.osf.io/v2/nodes/?filter[title]=context than location",
+        "https://paperswithcode.com/api/v1/papers/?title=There is more to context than location",
+        "https://api.crossref.org/works/10.1016/S0097-8493(99)00120-X (relation: {})",
+        "https://publikationen.bibliothek.kit.edu/1000128233 (metadata only)"
+      ]
+    },
+    {
+      "criterion": "data",
+      "found": false,
+      "url": null,
+      "searched": [
+        "the same nine places as for code",
+        "the paper itself: no data-availability statement, no appendix, no deposit reference (the 1999 Elsevier format has none)",
+        "http://www.teco.edu/tea/tea_hrd2.html and https://www.teco.edu/research/tea-technology-for-enabling-awareness/ (both HTTP 404, dead)",
+        "http://tea.starlab.net/ (does not resolve) and http://www.omega.it/tea/ (redirects to a company homepage)"
+      ]
+    },
+    {
+      "criterion": "license",
+      "found": false,
+      "url": null,
+      "searched": [
+        "https://api.crossref.org/works/10.1016/S0097-8493(99)00120-X - the only licence registered is Elsevier's text-mining user licence https://www.elsevier.com/tdm/userlicense/1.0/, which is not an open licence",
+        "the ScienceDirect record: 'Copyright (c) 1999 Elsevier Science B.V. All rights reserved'",
+        "the authors' draft PDF at teco.edu: no licence statement anywhere in the file",
+        "no artifact exists that could carry an open licence"
+      ]
+    },
+    {
+      "criterion": "preregistration",
+      "found": false,
+      "url": null,
+      "searched": [
+        "the full text, including footnotes and reference list: no mention of a registration or protocol",
+        "https://api.osf.io/v2/nodes/?filter[title]=context than location (0 results)",
+        "https://api.osf.io/v2/search/?q=\"more to context than location\" (no result)",
+        "the practice postdates the paper (1999); recorded as a fact, not a criticism"
+      ]
+    },
+    {
+      "criterion": "supplement",
+      "found": false,
+      "url": null,
+      "searched": [
+        "https://api.crossref.org/works/... - no supplementary-material relation registered",
+        "the audited PDF: no appendix, no ancillary material, 18 references and nothing further",
+        "arXiv API (0 results; never deposited), so no ancillary files exist there",
+        "https://www.sciencedirect.com/science/article/abs/pii/S009784939900120X could NOT be fetched (url_not_allowed) - the absence of a supplementary tab is inferred from Crossref and search-engine renderings, not verified directly (see UNVERIFIED.md)"
+      ]
+    }
+  ],
+  "released": [
+    {
+      "where": "Author draft PDF at teco.edu",
+      "what": "the paper's full text (the audited version; 382,888 bytes, MD5 81ea8c4246cfe16b6c6842c47daa9280)",
+      "result": "found",
+      "url": "http://www.teco.edu/~albrecht/publication/draft_docs/context-is-more-than-location.pdf"
+    },
+    {
+      "where": "Elsevier ScienceDirect",
+      "what": "version of record and any supplementary files",
+      "result": "partial",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S009784939900120X"
+    },
+    {
+      "where": "Crossref metadata for the DOI",
+      "what": "registered dataset/software/supplementary relations",
+      "result": "none",
+      "url": "https://api.crossref.org/works/10.1016/S0097-8493(99)00120-X"
+    },
+    {
+      "where": "First author's publication list at TecO",
+      "what": "code, data or supplementary links for this paper (only 'draft as PDF' and 'abstract')",
+      "result": "none",
+      "url": "https://www.teco.edu/~albrecht/publication/"
+    },
+    {
+      "where": "First author's abstract page for this paper",
+      "what": "artifact links",
+      "result": "none",
+      "url": "https://www.teco.edu/~albrecht/publication/elsevir1999_abstract.html"
+    },
+    {
+      "where": "TEA hardware page at teco.edu (still in search indexes)",
+      "what": "awareness-device hardware description",
+      "result": "dead",
+      "url": "http://www.teco.edu/tea/tea_hrd2.html"
+    },
+    {
+      "where": "TEA project page on the current TECO site (still in search indexes)",
+      "what": "project page and artifacts; the live /research index no longer lists TEA",
+      "result": "dead",
+      "url": "https://www.teco.edu/research/tea-technology-for-enabling-awareness/"
+    },
+    {
+      "where": "TEA project site linked from the first author's homepage",
+      "what": "project artifacts",
+      "result": "dead",
+      "url": "http://tea.starlab.net/"
+    },
+    {
+      "where": "TEA project URL cited in the authors' companion HUC'99 paper",
+      "what": "project artifacts (now redirects to the company homepage)",
+      "result": "dead",
+      "url": "http://www.omega.it/tea/"
+    },
+    {
+      "where": "The institutional host in the paper's own footer links",
+      "what": "anything from the original site",
+      "result": "dead",
+      "url": "http://www.teco.uni-karlsruhe.de/"
+    },
+    {
+      "where": "CiteSeerX record listed as an OpenAlex location",
+      "what": "cached full text",
+      "result": "dead",
+      "url": "http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.37.2933"
+    },
+    {
+      "where": "KITopen institutional repository",
+      "what": "deposited full text, data or supplement (metadata record only)",
+      "result": "none",
+      "url": "https://publikationen.bibliothek.kit.edu/1000128233"
+    },
+    {
+      "where": "github.com/teco-kit, the authors' institutional GitHub organisation",
+      "what": "code for the awareness device or the cue/context pipeline (all repositories post-date 2010)",
+      "result": "none",
+      "url": "https://github.com/teco-kit"
+    },
+    {
+      "where": "GitHub repository search API (three queries)",
+      "what": "a released or reimplemented codebase",
+      "result": "none",
+      "url": "https://api.github.com/search/repositories?q=technology+for+enabling+awareness+context"
+    },
+    {
+      "where": "Zenodo search API (title, and 'Technology for Enabling Awareness')",
+      "what": "deposited data or code",
+      "result": "none",
+      "url": "https://zenodo.org/api/records?q=%22Technology+for+Enabling+Awareness%22"
+    },
+    {
+      "where": "OSF API",
+      "what": "project or preregistration",
+      "result": "none",
+      "url": "https://api.osf.io/v2/nodes/?filter%5Btitle%5D=context%20than%20location"
+    },
+    {
+      "where": "arXiv API",
+      "what": "preprint and ancillary files",
+      "result": "none",
+      "url": "http://export.arxiv.org/api/query?search_query=all:%22more+to+context+than+location%22"
+    },
+    {
+      "where": "Papers with Code API",
+      "what": "associated code",
+      "result": "none",
+      "url": "https://paperswithcode.com/api/v1/papers/?title=There%20is%20more%20to%20context%20than%20location"
+    },
+    {
+      "where": "First author's current pages (LMU Munich; albrechtschmidt.info)",
+      "what": "a legacy artifact archive (the LMU page does not mention this paper; albrechtschmidt.info does not resolve)",
+      "result": "none",
+      "url": "https://www.um.informatik.uni-muenchen.de/personen/professoren/schmidt/index.html"
+    },
+    {
+      "where": "Third author's current page (Lancaster)",
+      "what": "artifacts for this paper",
+      "result": "none",
+      "url": "https://www.lancaster.ac.uk/scc/about-us/people/hans-gellersen"
+    },
+    {
+      "where": "Internet Archive / Memento",
+      "what": "archived snapshots of the four dead TEA URLs",
+      "result": "none",
+      "url": "https://web.archive.org/"
+    }
+  ]
+}
